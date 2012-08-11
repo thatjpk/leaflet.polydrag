@@ -23,6 +23,10 @@ L.Handler.PolyDrag = L.Handler.extend({
     },
 
     _onDragStart: function (e) {
+        if (this._poly.editing.enabled()) {
+            this._wasEditing = true;
+            this._poly.editing.disable();
+        }
         this._poly
             .fire('movestart')
             .fire('dragstart');
@@ -48,7 +52,10 @@ L.Handler.PolyDrag = L.Handler.extend({
         }
         L.DomUtil.setPosition(this._poly._container, new L.Point(0,0));
         this._poly.setLatLngs(newLatLngs);
-
+        if (this._wasEditing) {
+            this._poly.editing.enable();
+            this._wasEditing = false;
+        }
         this._poly
             .fire('moveend')
             .fire('dragend');
