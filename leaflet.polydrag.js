@@ -1,3 +1,5 @@
+// https://github.com/thatjpk/leaflet.polydrag
+
 L.Handler.PolyDrag = L.Handler.extend({
     initialize: function (poly) {
         this._poly = poly;
@@ -33,29 +35,25 @@ L.Handler.PolyDrag = L.Handler.extend({
     },
 
     _onDrag: function (e) {
-        L.DomUtil.setPosition(this._poly._container, e.target._totalDiffVec);
+        var map = this._poly._map;
+        var oldLatLngs = this._poly.getLatLngs();
+        var newLatLngs = [];
+        var i;
+        
+        for (i in oldLatLngs) {
+            var oldContainerPoint = map.latLngToContainerPoint(oldLatLngs[i]);
+            var newContainerPoint = 
+                oldContainerPoint.add(e.target._diffVec);
+            newLatLngs.push(map.containerPointToLatLng(newContainerPoint));
+        }
+        this._poly.setLatLngs(newLatLngs);
+        
         this._poly
             .fire('move')
             .fire('drag');
     },
 
     _onDragEnd: function (e) {
-        var map = this._poly._map;
-        var oldLatLngs = this._poly.getLatLngs();
-        var newLatLngs = [];
-        var i;
-        for (i in oldLatLngs) {
-            var oldContainerPoint = map.latLngToContainerPoint(oldLatLngs[i]);
-            var newContainerPoint = 
-                oldContainerPoint.add(e.target._totalDiffVec);
-            newLatLngs.push(map.containerPointToLatLng(newContainerPoint));
-        }
-        L.DomUtil.setPosition(this._poly._container, new L.Point(0,0));
-        this._poly.setLatLngs(newLatLngs);
-        if (this._wasEditing) {
-            this._poly.editing.enable();
-            this._wasEditing = false;
-        }
         this._poly
             .fire('moveend')
             .fire('dragend');
